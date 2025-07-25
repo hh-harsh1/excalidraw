@@ -5,9 +5,7 @@
     "./config": "./src/config.ts"
   },
   "main": "index.js",
-  "scripts": {
-    "dev": "tsc -b && node ./dist/config.js"
-  },
+  "scripts": {},
   "devDependencies": {
     "@repo/typescript-config": "workspace:*",
     "dotenv": "^17.2.0"
