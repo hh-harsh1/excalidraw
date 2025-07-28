@@ -81,7 +81,6 @@ router.post("/signin", async (req, res) => {
     }
 
     const hashpassword = await b.compare(body.password, user.password);
-    console.log(hashpassword);
 
     if (!hashpassword) {
       res.status(500).json({
@@ -101,28 +100,6 @@ router.post("/signin", async (req, res) => {
     });
     return;
   }
-});
-
-router.post("/create/room", middleware, async (req, res) => {
-  const body = req.body;
-  const result = createRoomSchema.safeParse(body);
-
-  if (!result.success) {
-    res.status(500).json({
-      message: "room name length should be greater than 3 and lessthen 20",
-    });
-  }
-
-  const room = await prismaClient.room.create({
-    data: {
-      slug: result.data?.room!,
-      AdminId: req.id,
-    },
-  });
-
-  res.json({
-    room,
-  });
 });
 
 export default router;
