@@ -10,15 +10,18 @@ export const middleware = async (
   try {
     const Authheader = req.headers.authorization;
 
-    if (typeof Authheader !== "string" || !Authheader?.startsWith("Bearer ")) {
+    if (!Authheader) {
+      return;
+    }
+
+    if (!Authheader.startsWith("Bearer ")) {
       res.status(500).json({
-        message: "invalid headers",
+        message: "Unauthorized",
       });
       return;
     }
 
     const token = Authheader.split(" ")[1]!;
-    console.log("token : ", token);
 
     const decoded = JWT.verify(token, JWT_SECRATE);
 

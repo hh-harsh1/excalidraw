@@ -45,6 +45,7 @@ wss.on("connection", (ws, request) => {
     const token = queryparams.get("token") || "";
 
     const userAuthenticated = checkUser(token);
+
     if (!userAuthenticated) {
       ws.close();
       return;
@@ -57,7 +58,12 @@ wss.on("connection", (ws, request) => {
     });
 
     ws.on("message", async (data) => {
-      const parsedMessage = JSON.parse(data as unknown as string);
+      let parsedMessage;
+      if (typeof parsedMessage !== "string") {
+        parsedMessage = JSON.parse(data.toString());
+      } else {
+        parsedMessage = JSON.parse(data as unknown as string);
+      }
 
       if (parsedMessage.type === "create_room") {
         const roomexsist = await prismaClient.room.findFirst({
@@ -83,22 +89,24 @@ wss.on("connection", (ws, request) => {
 
       if (parsedMessage.type === "join_room") {
         const user = Users.find((x) => x.socket == ws);
+        console.log(parsedMessage.roomId);
 
         if (!user) {
+          ws.send("user not found");
           return;
         }
 
         const user_exsist_inRoom = Users.find(
           (x) => x.socket === ws
-        )?.rooms.includes(parsedMessage.room);
+        )?.rooms.includes(parsedMessage.roomId);
 
         if (user_exsist_inRoom) {
           ws.send("you have already join this room");
           return;
         }
 
-        user.rooms.push(parsedMessage.room);
-        console.log(Users.map((x) => console.log(x.rooms)));
+        user.rooms.push(parsedMessage.roomId);
+        ws.send("sucsessfully join");
       }
 
       if (parsedMessage.type === "leave_room") {
@@ -123,7 +131,7 @@ wss.on("connection", (ws, request) => {
 
       if (parsedMessage.type === "chat") {
         const message = parsedMessage.message;
-        const room = parsedMessage.room;
+        const room = parsedMessage.roomId;
 
         const result = await prismaClient.chat.create({
           data: {

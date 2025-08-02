@@ -12,6 +12,7 @@ import {
 import { JWT_SECRATE } from "@repo/backend-common/config";
 import { prismaClient } from "@repo/db/client";
 import { middleware } from "../userMiddleware";
+import { connect } from "net";
 
 dotenv.config({ path: "../../.env" });
 
@@ -99,6 +100,73 @@ router.post("/signin", async (req, res) => {
       message: "error while signin...",
     });
     return;
+  }
+});
+
+router.post("/create", middleware, async (req, res) => {
+  const body = req.body;
+  const result = createRoomSchema.safeParse(body);
+
+  if (!result.success) {
+    res.status(500).json({
+      message: "room name must have more than 3 characters",
+    });
+    return;
+  }
+
+  const response = await prismaClient.room.create({
+    data: {
+      slug: body.room,
+      AdminId: req.id,
+    },
+  });
+
+  res.status(200).json({
+    message: "successfully created room",
+    roomId: response.id,
+  });
+});
+
+router.post("/invite", middleware, async (req, res) => {
+  try {
+    const roomId = req.body.roomId;
+
+    console.log(req.id);
+
+    const room_exsist = await prismaClient.room.findFirst({
+      where: {
+        id: Number(roomId),
+      },
+    });
+    console.log(room_exsist);
+
+    if (!room_exsist) {
+      res.status(500).json({
+        message: "room is not exsist...",
+      });
+    }
+
+    const admin = await prismaClient.room.findFirst({
+      where: {
+        AdminId: req.id,
+      },
+    });
+
+    console.log(admin);
+
+    if (!admin) {
+      res.status(500).json({
+        message: "this room is not bellongs to you",
+      });
+    }
+
+    res.status(200).json({
+      link: `http://localhost:3000/canvas/${roomId}`,
+    });
+  } catch {
+    res.status(500).json({
+      message: "error while inviting...",
+    });
   }
 });
 
