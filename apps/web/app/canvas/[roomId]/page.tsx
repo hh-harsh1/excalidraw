@@ -13,7 +13,7 @@ async function page({
   const roomId = (await params).roomId;
 
   return (
-    <div>
+    <div className="h-screen w-full">
       <Roomcanvas roomId={roomId} />
     </div>
   );

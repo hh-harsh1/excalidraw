@@ -10,7 +10,5 @@ export default async function useChat(roomId: string) {
     const messagedata = JSON.parse(x.message);
     return messagedata.shape;
   });
-
-  console.log(shapes);
   return shapes;
 }
